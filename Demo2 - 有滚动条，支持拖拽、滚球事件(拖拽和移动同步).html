@@ -1,0 +1,234 @@
+<!--
+ author:zzm
+ date:2012-12-25
+ -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>canvas 生成坐标</title>
+    <meta charset="utf-8">
+
+    <!-- Add jQuery library -->
+    <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
+    <!-- Add fancyBox main JS and CSS files -->
+    <script type="text/javascript" src="js/fancybox/jquery.fancybox.js?v=2.1.3"></script>
+    <link rel="stylesheet" type="text/css" href="js/fancybox/jquery.fancybox.css?v=2.1.2" media="screen"/>
+
+    <!-- JQuery UI -->
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/jqueryui/1.10.4/css/jquery-ui.min.css">
+    <script src="http://apps.bdimg.com/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <script src="js/jquery.mousewheel.min.js"></script>
+
+    <style>
+        .slider-range {
+            width: 500px
+        }
+    </style>
+
+</head>
+<body>
+<!-- <canvas id="canvas" width="1024" height="768" style="border:1px solid #aaa;display:block;margin:50 auto;">浏览器不兼容</canvas>-->
+<canvas id="canvas">浏览器不兼容</canvas>
+<div id="div_fancybox" style="display:none"><img src=''></div>
+
+<p>
+<div id="slider-range" class="slider-range"></div>
+<div id="slider-range-text"></div>
+
+</body>
+
+<script type="text/javascript">
+
+    var dataObj = {
+        "total": 500,
+        "dataList": [{
+            "num": 111,
+            "src": 'http://c.hiphotos.baidu.com/image/pic/item/9e3df8dcd100baa12795bd484c10b912c9fc2e8c.jpg'
+        }, {
+            "num": 112,
+            "src": 'http://a.hiphotos.baidu.com/image/pic/item/f11f3a292df5e0fe61b129f5576034a85fdf729d.jpg'
+        }, {
+            "num": 113,
+            "src": 'http://g.hiphotos.baidu.com/image/pic/item/c75c10385343fbf21cd839d7bb7eca8064388f4a.jpg'
+        }, {
+            "num": 115,
+            "src": 'http://f.hiphotos.baidu.com/image/pic/item/279759ee3d6d55fb272ad6d266224f4a21a4dd52.jpg'
+        }, {
+            "num": 201,
+            "src": 'http://f.hiphotos.baidu.com/image/pic/item/279759ee3d6d55fb272ad6d266224f4a21a4dd52.jpg'
+        }, {
+            "num": 202,
+            "src": 'http://f.hiphotos.baidu.com/image/pic/item/279759ee3d6d55fb272ad6d266224f4a21a4dd52.jpg'
+        }, {
+            "num": 203,
+            "src": 'http://f.hiphotos.baidu.com/image/pic/item/279759ee3d6d55fb272ad6d266224f4a21a4dd52.jpg'
+        }, {
+            "num": 204,
+            "src": 'http://f.hiphotos.baidu.com/image/pic/item/279759ee3d6d55fb272ad6d266224f4a21a4dd52.jpg'
+        }]
+    }
+
+    var radius = 8 //半径
+
+    //记录当前值
+    var current_min;
+    var current_max;
+    //等比例分隔后，每份的像素点数
+    var current_unit;
+
+    //画圆
+    function drawCircle(ctx, x, y) {
+        ctx.beginPath()
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = "red"
+        ctx.fill()
+        ctx.closePath()
+    }
+
+    function draw(min, max) {
+
+        if (min < 1 || max < min) {
+            //return;
+        }
+
+        var canvas = document.getElementById("canvas");
+
+        canvas.width = 1000;
+        canvas.height = 50;//通过这两种方式也可以设置canvas的大小；
+
+        var ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        current_unit = canvas.width / (max - min); //等比例分隔
+
+        //画数轴
+        ctx.moveTo(radius, canvas.height / 2)
+        ctx.lineTo(radius, canvas.height - 15)
+        ctx.lineTo(canvas.width - radius, canvas.height - 15)
+        ctx.lineTo(canvas.width - radius, canvas.height / 2)
+        ctx.stroke()
+
+        if ((max - min) <= 20) {
+            for (var i = min, j = 1; i < max; i++, j++) {
+                ctx.strokeText(i, (j - 1) * current_unit + 4, canvas.height)
+            }
+            ctx.strokeText(max, canvas.width - radius - 10, canvas.height)
+        } else if ((max - min) <= 100) {
+            for (var i = min, j = 1; i < max; i++, j++) {
+                if (i % 4 == 1) {
+                    ctx.strokeText(i, (j - 1) * current_unit + 4, canvas.height)
+                }
+            }
+        } else if ((max - min) <= 500) {
+            for (var i = min, j = 1; i < max; i++, j++) {
+                if (i % 25 == 1) {
+                    ctx.strokeText(i, (j - 1) * current_unit + 4, canvas.height)
+                }
+            }
+        } else {
+            for (var i = min, j = 1; i < max; i++, j++) {
+                if (i % 50 == 1) {
+                    ctx.strokeText(i, (j - 1) * current_unit + 4, canvas.height)
+                }
+            }
+        }
+
+        //调用画圆函数画圆
+        for (var i = 0; i < dataObj.dataList.length; i++) {
+            var obj = dataObj.dataList[i]
+            if (obj.num != max) {
+                obj.x = (obj.num - min) * current_unit + radius;
+                obj.y = canvas.height / 2;
+            } else {
+                obj.x = (obj.num - min) * current_unit - radius;
+                obj.y = canvas.height / 2;
+            }
+            drawCircle(ctx, obj.x, obj.y)
+        }
+
+        //增加点击事件
+        canvas.onclick = function (e) {
+            var rect = this.getBoundingClientRect();
+            var gravityPoint = {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+            for (var i = 0; i < dataObj.dataList.length; i++) {
+                var obj = dataObj.dataList[i]
+                if (gravityPoint.x >= obj.x - radius && gravityPoint.x <= obj.x + radius && gravityPoint.y >= obj.y - radius && gravityPoint.y <= obj.y + radius) {
+                    //$("#div_fancybox").load(obj.src).fancybox();
+                    $("#div_fancybox").children('img').attr('src', obj.src);
+                    $("#div_fancybox").fancybox();
+                    $("#div_fancybox").click();
+                }
+            }
+        };
+        current_min = min;
+        current_max = max;
+        $("#slider-range-text").html("当前查看范围：" + min + " - " + max);
+        $("#slider-range").slider("values", [min, max]);
+    }
+
+    function toInt(num) {
+        return parseInt(num.toFixed(0));
+    }
+
+    $(function () {
+        //计算默认值
+        var default_min = dataObj.dataList[0].num;
+        var default_max = (dataObj.dataList[dataObj.dataList.length - 1].num - default_min) > 100 ? default_min + 100 : dataObj.dataList[dataObj.dataList.length - 1].num;
+        $("#slider-range").slider({
+            range: true,
+            min: 1,
+            max: dataObj.total,
+            values: [default_min, default_max],
+            slide: function (event, ui) {
+                draw(ui.values[0], ui.values[1])
+            }
+        });
+        draw(default_min, default_max);
+
+        //滚球
+        $("#canvas").mousewheel(function (event, delta) {
+            //计算当前鼠标所在位置的点
+            var current_num = (event.offsetX / current_unit + current_min).toFixed(0);
+            //计算收缩比例
+            var temp = (current_num - current_min) / (current_max - current_min);
+            if ((current_min + toInt(5 * temp) * delta) >= 1 && (current_min + toInt(5 * temp) * delta) <= (current_max - toInt(5 * temp) * delta) && (current_max - toInt(5 * temp) * delta) <= dataObj.total) {
+                current_min += toInt(5 * temp) * delta;
+                current_max -= toInt(5 * (1 - temp)) * delta;
+                draw(current_min, current_max);
+            }
+        })
+
+        //拖拽
+        var temp_x;
+        var isDragging = false;
+        $("#canvas").mousedown(function (event) {
+            temp_x = event.offsetX;
+            isDragging = true;
+        }).mouseup(function (event) {
+            isDragging = false;
+        }).mouseout(function (event) {
+            isDragging = false;
+        })
+        $("#canvas").mousemove(function (event) {
+            if (isDragging && temp_x != event.offsetX) {
+                if (Math.abs(event.offsetX - temp_x) > current_unit) {
+                    //计算移动的点数
+                    var temp = (event.offsetX - temp_x) > 1 ? 1 : -1;
+                    if (current_min - temp >= 1 && current_max - temp <= dataObj.total) {
+                        current_min -= temp;
+                        current_max -= temp;
+                        draw(current_min, current_max);
+                    }
+                    temp_x = event.offsetX;
+                }
+            }
+        })
+    });
+
+</script>
+
+
+</html>
